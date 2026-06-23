@@ -4,6 +4,8 @@ const logger = require('./middleware/logger');
 const notFound = require('./middleware/notFound');
 const errorHandler = require('./middleware/errorHandler');
 
+const authRouter = require('./routes/auth.routes');
+
 const app = express();
 
 app.use(express.json());
@@ -21,6 +23,7 @@ Example:
 const usersRouter = require('./routes/users.routes');
 app.use('/users', usersRouter);
 */
+app.use('/auth', authRouter);
 
 app.use(notFound);
 app.use(errorHandler);
