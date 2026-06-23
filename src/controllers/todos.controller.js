@@ -153,10 +153,34 @@ async function updateTodo(req, res) {
 	});
 }
 
+async function deleteTodo(req, res) {
+    const todoId = parseTodoId(req.params.id);
+
+    if (!todoId) {
+        return res.status(400).json({
+            error: 'Todo ID must be a positive integer'
+        });
+    }
+
+    const wasDeleted = await todosService.deleteTodoByIdAndUserId(
+        todoId,
+        req.user.id
+    );
+
+    if (!wasDeleted) {
+        return res.status(404).json({
+            error: `Todo with ID ${todoId} not found`
+        });
+    }
+
+    res.status(204).send();
+}
+
 module.exports = {
 	createTodo,
 	getTodos,
 	getTodoById,
 	validateUpdateTodoBody,
-	updateTodo
+	updateTodo,
+	deleteTodo
 };

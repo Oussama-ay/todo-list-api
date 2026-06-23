@@ -79,9 +79,23 @@ async function updateTodoByIdAndUserId(todoId, userId, { title, description, sta
     return mapTodo(result.rows[0]);
 }
 
+async function deleteTodoByIdAndUserId(todoId, userId) {
+    const result = await pool.query(
+        `
+        DELETE FROM todos
+        WHERE id = $1
+          AND user_id = $2
+        `,
+        [todoId, userId]
+    );
+
+    return result.rowCount > 0;
+}
+
 module.exports = {
     createTodo,
     getTodosByUserId,
     getTodoByIdAndUserId,
-    updateTodoByIdAndUserId
+    updateTodoByIdAndUserId,
+    deleteTodoByIdAndUserId
 };
