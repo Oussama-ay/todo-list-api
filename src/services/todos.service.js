@@ -38,7 +38,26 @@ async function getTodosByUserId(userId) {
     return result.rows.map(mapTodo);
 }
 
+async function getTodoByIdAndUserId(todoId, userId) {
+    const result = await pool.query(
+        `
+        SELECT id, title, description, status, created_at, updated_at
+        FROM todos
+        WHERE id = $1
+          AND user_id = $2
+        `,
+        [todoId, userId]
+    );
+
+    if (result.rows.length === 0) {
+        return null;
+    }
+
+    return mapTodo(result.rows[0]);
+}
+
 module.exports = {
     createTodo,
     getTodosByUserId,
+    getTodoByIdAndUserId
 };

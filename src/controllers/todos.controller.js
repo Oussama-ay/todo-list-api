@@ -47,7 +47,41 @@ async function getTodos(req, res) {
     res.json(todos);
 }
 
+function parseTodoId(idValue) {
+    const todoId = Number(idValue);
+
+    if (!Number.isInteger(todoId) || todoId <= 0) {
+        return null;
+    }
+
+    return todoId;
+}
+
+async function getTodoById(req, res) {
+    const todoId = parseTodoId(req.params.id);
+
+    if (!todoId) {
+        return res.status(400).json({
+            error: 'Todo ID must be a positive integer'
+        });
+    }
+
+    const todo = await todosService.getTodoByIdAndUserId(
+        todoId,
+        req.user.id
+    );
+
+    if (!todo) {
+        return res.status(404).json({
+            error: `Todo with ID ${todoId} not found`
+        });
+    }
+
+    res.json(todo);
+}
+
 module.exports = {
     createTodo,
-	getTodos
+	getTodos,
+	getTodoById
 };
