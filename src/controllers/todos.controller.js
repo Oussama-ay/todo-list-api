@@ -41,6 +41,13 @@ async function createTodo(req, res) {
     });
 }
 
+async function getTodos(req, res) {
+    const todos = await todosService.getTodosByUserId(req.user.id);
+
+    res.json(todos);
+}
+
 module.exports = {
-    createTodo
+    createTodo,
+	getTodos
 };

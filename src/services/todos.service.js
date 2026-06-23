@@ -24,6 +24,21 @@ async function createTodo(userId, { title, description }) {
     return mapTodo(result.rows[0]);
 }
 
+async function getTodosByUserId(userId) {
+    const result = await pool.query(
+        `
+        SELECT id, title, description, status, created_at, updated_at
+        FROM todos
+        WHERE user_id = $1
+        ORDER BY id ASC
+        `,
+        [userId]
+    );
+
+    return result.rows.map(mapTodo);
+}
+
 module.exports = {
-    createTodo
+    createTodo,
+    getTodosByUserId,
 };
