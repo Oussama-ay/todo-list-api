@@ -1,4 +1,5 @@
 # Todo List API
+<img width="1833" height="780" alt="image" src="https://github.com/user-attachments/assets/e54fcc88-dd28-4c8f-b435-2a2ba03968f4" />
 
 A REST API for managing personal todos with authentication, authorization, filtering, and pagination.
 
