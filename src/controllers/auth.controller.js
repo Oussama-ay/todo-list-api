@@ -67,89 +67,105 @@ async function register(req, res) {
 		passwordHash
 	});
 
+	const token = jwt.sign(
+		{
+			userId: user.id,
+			email: user.email
+		},
+		process.env.JWT_SECRET,
+		{
+			expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+		}
+	);
+
 	res.status(201).json({
 		message: 'User registered successfully',
-		user
+		token,
+		user: {
+			id: user.id,
+			name: user.name,
+			email: user.email
+		}
 	});
 }
 
 function validateLoginBody(body) {
-    if (!body) {
-        return null;
-    }
+	if (!body) {
+		return null;
+	}
 
-    const { email, password } = body;
+	const { email, password } = body;
 
-    if (
-        typeof email !== 'string' ||
-        typeof password !== 'string'
-    ) {
-        return null;
-    }
+	if (
+		typeof email !== 'string' ||
+		typeof password !== 'string'
+	) {
+		return null;
+	}
 
-    const normalizedEmail = email.trim().toLowerCase();
+	const normalizedEmail = email.trim().toLowerCase();
 
-    if (!normalizedEmail || !password) {
-        return null;
-    }
+	if (!normalizedEmail || !password) {
+		return null;
+	}
 
-    return {
-        email: normalizedEmail,
-        password
-    };
+	return {
+		email: normalizedEmail,
+		password
+	};
 }
 
 async function login(req, res) {
-    const loginData = validateLoginBody(req.body);
+	const loginData = validateLoginBody(req.body);
 
-    if (!loginData) {
-        return res.status(400).json({
-            error: 'email and password are required'
-        });
-    }
+	if (!loginData) {
+		return res.status(400).json({
+			error: 'email and password are required'
+		});
+	}
 
-    const user = await authService.findUserByEmail(loginData.email);
+	const user = await authService.findUserByEmail(loginData.email);
 
-    if (!user) {
-        return res.status(401).json({
-            error: 'Invalid email or password'
-        });
-    }
+	if (!user) {
+		return res.status(401).json({
+			error: 'Invalid email or password'
+		});
+	}
 
-    const passwordMatches = await bcrypt.compare(
-        loginData.password,
-        user.password_hash
-    );
+	const passwordMatches = await bcrypt.compare(
+		loginData.password,
+		user.password_hash
+	);
 
-    if (!passwordMatches) {
-        return res.status(401).json({
-            error: 'Invalid email or password'
-        });
-    }
+	if (!passwordMatches) {
+		return res.status(401).json({
+			error: 'Invalid email or password'
+		});
+	}
 
-    const token = jwt.sign(
-        {
-            userId: user.id,
-            email: user.email
-        },
-        process.env.JWT_SECRET,
-        {
-            expiresIn: process.env.JWT_EXPIRES_IN || '1h'
-        }
-    );
+	const token = jwt.sign(
+		{
+			userId: user.id,
+			email: user.email
+		},
+		process.env.JWT_SECRET,
+		{
+			expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+		}
+	);
 
-    res.json({
-        message: 'Login successful',
-        token,
-        user: {
-            id: user.id,
-            name: user.name,
-            email: user.email
-        }
-    });
+	res.json({
+		message: 'Login successful',
+		token,
+		user: {
+			id: user.id,
+			name: user.name,
+			email: user.email
+		}
+	});
 }
 
 module.exports = {
 	register,
-	login	
+	login
 };
