@@ -41,10 +41,69 @@ async function createTodo(req, res) {
 	});
 }
 
-async function getTodos(req, res) {
-	const todos = await todosService.getTodosByUserId(req.user.id);
+function parsePositiveInteger(value, defaultValue, fieldName) {
+	if (value === undefined) {
+		return defaultValue;
+	}
 
-	res.json(todos);
+	if (typeof value !== 'string') {
+		return null;
+	}
+
+	const number = Number(value);
+
+	if (!Number.isInteger(number) || number <= 0) {
+		throw new Error(`${fieldName} must be a positive integer`);
+	}
+
+	return number;
+}
+
+function validateTodosQuery(query) {
+	const { status, page, limit } = query;
+
+	const allowedStatuses = ['todo', 'in-progress', 'done'];
+
+	if (
+		status !== undefined &&
+		(typeof status !== 'string' || !allowedStatuses.includes(status))
+	) {
+		return null;
+	}
+
+	try {
+		const parsedPage = parsePositiveInteger(page, 1, 'page');
+		const parsedLimit = parsePositiveInteger(limit, 10, 'limit');
+
+		if (parsedLimit > 100) {
+			return null;
+		}
+
+		return {
+			status,
+			page: parsedPage,
+			limit: parsedLimit
+		};
+	} catch {
+		return null;
+	}
+}
+
+async function getTodos(req, res) {
+	const queryOptions = validateTodosQuery(req.query);
+
+	if (!queryOptions) {
+		return res.status(400).json({
+			error: 'status must be todo, in-progress, or done; page and limit must be positive integers; limit cannot exceed 100'
+		});
+	}
+
+	const result = await todosService.getTodosByUserId(
+		req.user.id,
+		queryOptions
+	);
+
+	res.json(result);
 }
 
 function parseTodoId(idValue) {
@@ -154,26 +213,26 @@ async function updateTodo(req, res) {
 }
 
 async function deleteTodo(req, res) {
-    const todoId = parseTodoId(req.params.id);
+	const todoId = parseTodoId(req.params.id);
 
-    if (!todoId) {
-        return res.status(400).json({
-            error: 'Todo ID must be a positive integer'
-        });
-    }
+	if (!todoId) {
+		return res.status(400).json({
+			error: 'Todo ID must be a positive integer'
+		});
+	}
 
-    const wasDeleted = await todosService.deleteTodoByIdAndUserId(
-        todoId,
-        req.user.id
-    );
+	const wasDeleted = await todosService.deleteTodoByIdAndUserId(
+		todoId,
+		req.user.id
+	);
 
-    if (!wasDeleted) {
-        return res.status(404).json({
-            error: `Todo with ID ${todoId} not found`
-        });
-    }
+	if (!wasDeleted) {
+		return res.status(404).json({
+			error: `Todo with ID ${todoId} not found`
+		});
+	}
 
-    res.status(204).send();
+	res.status(204).send();
 }
 
 module.exports = {
